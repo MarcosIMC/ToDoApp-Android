@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.todo.addtasks.domain.AddTaskUseCase
 import com.example.todo.addtasks.domain.GetTasksUseCase
+import com.example.todo.addtasks.domain.UpdateTaskUseCase
 import com.example.todo.addtasks.ui.TasksUiState.Success
 import com.example.todo.addtasks.ui.model.TaskModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TasksViewModel @Inject constructor(
     private val addTaskUseCase: AddTaskUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase,
     getTasksUseCase: GetTasksUseCase
 ): ViewModel() {
     val uiState: StateFlow<TasksUiState> = getTasksUseCase().map( ::Success )
@@ -27,9 +29,6 @@ class TasksViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TasksUiState.Loading)
     private val _showDialog = MutableLiveData<Boolean>()
     val showDialog: LiveData<Boolean> = _showDialog
-
-//    private val _tasks = mutableStateListOf<TaskModel>()
-//    val tasks: List<TaskModel> = _tasks
 
     fun dialogClose() {
         _showDialog.value = false
@@ -47,11 +46,9 @@ class TasksViewModel @Inject constructor(
     }
 
     fun onCheckboxSelected(taskModel: TaskModel) {
-        //Actualizar check
-        /*val taskIndex = _tasks.indexOf(taskModel)
-        _tasks[taskIndex] = _tasks[taskIndex].let {
-            it.copy(selected = !it.selected)
-        }*/
+        viewModelScope.launch {
+            updateTaskUseCase(taskModel.copy(selected = !taskModel.selected))
+        }
     }
 
     fun onItemRemove(taskModel: TaskModel) {
