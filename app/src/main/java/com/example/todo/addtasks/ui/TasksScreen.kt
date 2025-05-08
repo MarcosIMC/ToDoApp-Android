@@ -3,14 +3,20 @@ package com.example.todo.addtasks.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -25,21 +31,49 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.todo.addtasks.ui.model.TaskModel
 
 @Composable
 fun TasksScreen(modifier: Modifier, tasksViewModel: TasksViewModel) {
 
     val showDialog: Boolean by tasksViewModel.showDialog.observeAsState(false)
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = modifier.fillMaxSize()) {
         AddTaskDialog(
             showDialog,
             onDismiss = { tasksViewModel.dialogClose() },
             onTaskAdded = { tasksViewModel.onTaskCreated(it) })
         FabDialog(Modifier.align(Alignment.BottomEnd), tasksViewModel)
+        TaskList(tasksViewModel)
+    }
+}
+
+@Composable
+fun TaskList(tasksViewModel: TasksViewModel) {
+    val myTasks: List<TaskModel> = tasksViewModel.tasks
+
+    LazyColumn {
+        items(myTasks, key = {it.id}) { task ->
+            ItemTask(task, tasksViewModel)
+        }
+    }
+}
+
+@Composable
+fun ItemTask(taskModel: TaskModel, tasksViewModel: TasksViewModel) {
+    Card(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(text = taskModel.task, modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 6.dp))
+            Checkbox(checked = taskModel.selected, onCheckedChange = { tasksViewModel.onCheckboxSelected(taskModel) })
+        }
     }
 }
 
@@ -81,6 +115,7 @@ fun AddTaskDialog(show: Boolean, onDismiss: () -> Unit, onTaskAdded: (String) ->
                 Button(onClick = {
                     //Mandar tarea
                     onTaskAdded(myTask)
+                    myTask = ""
                 }, modifier = Modifier.fillMaxWidth()) {
                     Text(text = "Añadir tarea")
                 }
