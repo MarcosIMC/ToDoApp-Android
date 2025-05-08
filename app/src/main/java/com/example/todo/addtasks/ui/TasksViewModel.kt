@@ -35,4 +35,9 @@ class TasksViewModel @Inject constructor(): ViewModel() {
             it.copy(selected = !it.selected)
         }
     }
+
+    fun onItemRemove(taskModel: TaskModel) {
+        val task = _tasks.find { it.id == taskModel.id }
+        _tasks.remove(task)
+    }
 }
